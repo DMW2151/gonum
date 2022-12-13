@@ -6,6 +6,8 @@ package distuv
 
 import (
 	"math"
+
+	"golang.org/x/exp/rand"
 )
 
 // Logistic implements the Logistic distribution, a two-parameter distribution with support on the real axis.
@@ -18,8 +20,9 @@ import (
 //
 // For more information, see https://en.wikipedia.org/wiki/Logistic_distribution.
 type Logistic struct {
-	Mu float64 // Mean value
-	S  float64 // Scale parameter proportional to standard deviation
+	Mu  float64 // Mean value
+	S   float64 // Scale parameter proportional to standard deviation
+	Src rand.Source
 }
 
 // CDF computes the value of the cumulative density function at x.
@@ -73,6 +76,16 @@ func (l Logistic) Prob(x float64) float64 {
 // Quantile returns the inverse of the cumulative distribution function.
 func (l Logistic) Quantile(p float64) float64 {
 	return l.Mu + l.S*math.Log(p/(1-p))
+}
+
+// Rand returns a random sample drawn from the distribution.
+func (l Logistic) Rand() float64 {
+	var runif float64 = rand.Float64()
+	if l.Src != nil {
+		rnd := rand.New(l.Src)
+		runif = rnd.Float64()
+	}
+	return l.Mu + l.S*(math.Log(runif)-math.Log(1-runif))
 }
 
 // Skewness returns the skewness of the distribution.
